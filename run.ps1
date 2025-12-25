@@ -269,7 +269,7 @@ function Format-LanguageCode {
             break
         }
         Default {
-            $returnCode = $PSUICulture
+            $returnCode = 'id'
             $long_code = $true
             break
         }
@@ -291,7 +291,7 @@ function Format-LanguageCode {
 
     if ($returnCode -NotIn $supportLanguages) {
 
-        $returnCode = 'en'
+        $returnCode = 'id'
     }
     return $returnCode 
 }   
@@ -367,7 +367,7 @@ function CallLang($clg) {
 }
 
 # Set language code for script.
-$langCode = Format-LanguageCode -LanguageCode $Language
+$langCode = 'id'
 
 $lang = CallLang -clg $langCode
 
