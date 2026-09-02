@@ -735,6 +735,10 @@ function Get {
             return $response
         }
         catch {
+            $isNotFound = ($_.Exception.Response.StatusCode.value__ -eq 404) -or ($_.Exception.Message -like "*404*")
+            if ($isNotFound -and ($Url -match 'SayMaven/BTSspotify')) {
+                break
+            }
             Write-Warning "Attempt $($i+1) of $MaxRetries failed: $_"
             if ($i -lt $MaxRetries - 1) {
                 Start-Sleep -Seconds $RetrySeconds
