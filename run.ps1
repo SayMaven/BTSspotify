@@ -732,6 +732,12 @@ function Get {
     for ($i = 0; $i -lt $MaxRetries; $i++) {
         try {
             $response = Invoke-RestMethod @params
+            if ($response -is [string]) {
+                $trimmed = $response.TrimStart([char]0xFEFF).Trim()
+                if ($trimmed.StartsWith('{') -or $trimmed.StartsWith('[')) {
+                    try { $response = $trimmed | ConvertFrom-Json } catch { }
+                }
+            }
             return $response
         }
         catch {
@@ -754,7 +760,14 @@ function Get {
         if ($fallbackUrl -ne $Url) {
             try {
                 $params['Uri'] = $fallbackUrl
-                return (Invoke-RestMethod @params)
+                $response = Invoke-RestMethod @params
+                if ($response -is [string]) {
+                    $trimmed = $response.TrimStart([char]0xFEFF).Trim()
+                    if ($trimmed.StartsWith('{') -or $trimmed.StartsWith('[')) {
+                        try { $response = $trimmed | ConvertFrom-Json } catch { }
+                    }
+                }
+                return $response
             }
             catch { }
         }
