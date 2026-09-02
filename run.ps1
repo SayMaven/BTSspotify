@@ -415,21 +415,25 @@ function CallLang($clg) {
 
     $ProgressPreference = 'SilentlyContinue'
 
-    $localPath = Join-Path $PSScriptRoot "scripts\installer-lang\$clg.ps1"
-    if (Test-Path $localPath) {
-        return (& $localPath)
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        $localPath = Join-Path $PSScriptRoot "scripts\installer-lang\$clg.ps1"
+        if (Test-Path $localPath) {
+            $localContent = [System.IO.File]::ReadAllText($localPath, [System.Text.Encoding]::UTF8)
+            return (Invoke-Expression $localContent.TrimStart([char]0xFEFF))
+        }
     }
 
     try {
-        $response = (iwr -Uri (Get-Link -e "/scripts/installer-lang/$clg.ps1") -UseBasicParsing).Content
-        if ($mirror) { $response = [System.Text.Encoding]::UTF8.GetString($response) }
+        $wr = Invoke-WebRequest -Uri (Get-Link -e "/scripts/installer-lang/$clg.ps1") -UseBasicParsing
+        $response = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray()).TrimStart([char]0xFEFF)
         Invoke-Expression $response
     }
     catch {
         # Fallback to upstream SpotX language file if SayMaven repo does not host it yet
         try {
             $fallbackUrl = "https://raw.githubusercontent.com/SpotX-Official/SpotX/main/scripts/installer-lang/$clg.ps1"
-            $response = (iwr -Uri $fallbackUrl -UseBasicParsing).Content
+            $wr = Invoke-WebRequest -Uri $fallbackUrl -UseBasicParsing
+            $response = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray()).TrimStart([char]0xFEFF)
             Invoke-Expression $response
         }
         catch {
